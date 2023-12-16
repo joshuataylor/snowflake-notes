@@ -1,3 +1,8 @@
+# Snowflake Notes
+This document aims to provide information about how Snowflake drivers work, in terms of how they authenticate, query and other features they have.
+
+This should be useful when writing a Snowflake driver for other languages.
+
 # Driver Workflow
 
 ## Usecase
@@ -54,6 +59,7 @@ curl 'https://xxx.us-east-1.snowflakecomputing.com/session/v1/login-request' \
 </details>
 
 #### Response Example
+
 <details>
 <summary>Example Response</summary>
 
@@ -295,15 +301,14 @@ Your username.
 
 This determines the type of data you are returned when querying for rows, as Snowflake returns either JSON or Arrow resultsets.
 
-> \[!TIP]
-> xxxx
-
-> For context about Arrow Streams, see the [Apache Arrow documentation about streaming files from Arrow](https://arrow.apache.org/docs/python/ipc.html).
+> [!NOTE]
+> For additional information about Arrow Streams, see the [Apache Arrow documentation about streaming files from Arrow](https://arrow.apache.org/docs/python/ipc.html).
 
 This is because certain languages don't have support for Arrow, and need JSON Resultsets (Node.js, etc).
 
 This information is shown in the Classic Console when viewing a query, the version might show a warning that it is no longer supported by Snowflake if it's set too low.
 
+> [!TIP]
 > I highly recommend trying to use Arrow, if your language supports it, it's much faster to process on the client, and the download size is usually far smaller.
 
 JSON Resultsets:
