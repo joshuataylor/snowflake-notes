@@ -1,26 +1,32 @@
-# Snowflake Notes
-This document aims to provide information about how Snowflake drivers work, in terms of how they authenticate, query and other features they have.
+# Snowflake Connectors Workflow
 
-This should be useful when writing a Snowflake driver for other languages.
+This document aims to provide information about how Snowflake drivers work, in terms of how they authenticate, perform queries and other features you can use.
 
-# Driver Workflow
+These notes should be useful when developing a Snowflake driver or needing to query certain endpoints.
 
 ## Usecase
 These are the endpoints that the [official drivers](https://docs.snowflake.com/en/developer-guide/drivers) use with Snowflake.
 
 ## Capabilities
-Login, queries, query monitoring, basically anything a driver can do.
+Login, perform queries, query monitoring, abort queries, fetch query result sets, basically anything a driver can do.
 
 ## Endpoints
 
 ### Login
-
 #### Summary
-You login using a JSON POST request with your Snowflake credentials, and are returned a `token` which you use for other endpoints, with the `Authorization` header `Snowflake Token`.
+The login endpoint (`session/v1/login-request`) expects a POST request containing a JSON body with your Snowflake credentials.
 
-#### cURL Example
+On successful login, the endpoint returns a `token`, which you use when accessing other endpoints.
+
+> [!TIP]
+> Other endpoints are authenticated using the `Authorization` header, with `Snowflake Token="xxx"`.
+
+#### cURL Examples
+
+Here are some cURL examples you can use to login:
+
 <details>
-<summary>Example Request</summary>
+<summary>Login Request</summary>
 
 ```sh
 curl 'https://xxx.us-east-1.snowflakecomputing.com/session/v1/login-request' \
@@ -63,7 +69,8 @@ curl 'https://xxx.us-east-1.snowflakecomputing.com/session/v1/login-request' \
 <details>
 <summary>Example Response</summary>
 
-Valid respons
+Valid response:
+
 ```json
 
 {
@@ -246,19 +253,19 @@ Valid respons
 
 </details>
 
-Response:
+#### Request
 
-#### Request Information
+##### Endpoint
+`/session/v1/login-request`
 
-Endpoint: `session/v1/login-request`
+##### Method
+ `POST`
 
-Method: `POST`
-
-Headers:
+##### Headers
 - Content-Type: `application/json`
 - Accept: `application/json`
 
-Request Body:
+##### Request Body
 
 ```json
 {
@@ -288,16 +295,16 @@ Request Body:
 }
 ```
 
-##### ACCOUNT_NAME
+###### ACCOUNT_NAME
 Your account name + region, eg `foo12345.us-east-1`.
 
-##### PASSWORD
+###### PASSWORD
 Your password :-).
 
-##### LOGIN_NAME
+###### LOGIN_NAME
 Your username.
 
-##### CLIENT_APP_ID / CLIENT_APP_VERSION
+###### CLIENT_APP_ID / CLIENT_APP_VERSION
 
 This determines the type of data you are returned when querying for rows, as Snowflake returns either JSON or Arrow resultsets.
 
@@ -325,7 +332,7 @@ Arrow Resultsets:
 
 > This is used by the [Python driver](https://github.com/snowflakedb/snowflake-connector-python)
 
-##### SESSION_PARAMETERS
+###### SESSION_PARAMETERS
 
 You can set [session parameters](https://docs.snowflake.com/en/sql-reference/parameters) when logging in.
 
@@ -337,7 +344,7 @@ Validates that the parameters are correct.
 2. `QUOTED_IDENTIFIERS_IGNORE_CASE: true`
 Ignores case for quoted identifers, [see docs](https://docs.snowflake.com/en/sql-reference/identifiers-syntax#migrating-from-databases-that-treat-double-quoted-identifiers-as-case-insensitive). This helps work around issues if you're implementing for a language with database drivers that don't expect this behaviour.
 
-##### CLIENT_ENVIRONMENT
+###### CLIENT_ENVIRONMENT
 
 Sets various parameters such as warehouse, role, etc.
 
@@ -358,4 +365,30 @@ Sets various parameters such as warehouse, role, etc.
 - `OS`: Meta information, I usually use `Linux`.
 - `APPLICATION` - Shows your application name in the query history, useful for debugging.
 
-# Auth
+## Query Request
+
+To perform queries against Snowflake, you'll need a Token from above.
+
+`/queries/v1/query-request`
+
+```sh
+curl 'https://xx.us-east-1.snowflakecomputing.com/queries/v1/query-request' \
+-X POST \
+-H 'Host: xxx.us-east-1.snowflakecomputing.com' \
+-H 'accept: application/snowflake' \
+-H 'Authorization: Snowflake Token="ver:3-hint:xxxx"' \
+-H 'Content-Type: application/json' \
+--data-raw '{"sqlText": "select 2 as x", "asyncExec": false, "sequenceId": 0, "parameters": {}}'
+```
+
+"accept", "application/snowflake
+
+## Get Query Results
+`/queries/{QUERY_ID}/result` GET
+
+## Abort Query
+`/queries/v1/abort-request` POST
+
+`/queries/13f12818-de4c-41d2-bf19-f115ee8a5cc1/abort-request` POST
+
+`/session/authenticator-request`
