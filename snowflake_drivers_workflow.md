@@ -28,7 +28,7 @@ Here are some cURL examples you can use to login:
 <details>
 <summary>Login Request</summary>
 
-```sh
+```bash
 curl 'https://xxx.us-east-1.snowflakecomputing.com/session/v1/login-request' \
 -X POST \
 -H 'Host: xxx.us-east-1.snowflakecomputing.com' \
@@ -72,7 +72,6 @@ curl 'https://xxx.us-east-1.snowflakecomputing.com/session/v1/login-request' \
 Valid response:
 
 ```json
-
 {
   "data": {
     "masterToken": "ver:3-hint:xxx",
@@ -293,6 +292,9 @@ Valid response:
     }
   }
 }
+```
+```
+barrr
 ```
 
 ###### ACCOUNT_NAME
