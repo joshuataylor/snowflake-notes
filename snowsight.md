@@ -143,12 +143,14 @@ Otherwise returns a `masterToken`/`token`.
 URL: `complete-oauth/snowflake?code={CODE}`
 Method: `GET`
 
-`{CODE}` - Using the returned code from above, but just use `redirectURL` - it's easier as this might.
+`{CODE}` - Using the returned code from above, but just use `redirectURL` returned from the `login-request` - it's easier as this might.
+
+The `state` part is needed, it's the URL of your instance.
 
 Example cURL Command:
 
 ```sh
-curl 'https://apps-api.c1.{REGION}.aws.app.snowflake.com/complete-oauth/snowflake?code={CODE}'
+curl 'https://apps-api.c1.{REGION}.aws.app.snowflake.com/complete-oauth/snowflake?code={CODE}&state=%7B%22url%22%3A%22https%3A%2F%2F{ACCOUNTNAME}.{REGION}.snowflakecomputing.com%22%7'
 ```
 
 ### Complete OAuth Response
@@ -156,8 +158,6 @@ curl 'https://apps-api.c1.{REGION}.aws.app.snowflake.com/complete-oauth/snowflak
 The response is HTML, but we only care about the cookie headers:
 
 ```
-HTTP/1.1 200 OK
-content-encoding: gzip
 set-cookie: S8_SESSION_{USERNAME}__https___{ACCOUNTNAME}_{REGION}_snowflakecomputing_com=yyyy; path=/; secure; HttpOnly
 set-cookie: user-xxx="yyy="; Version=1; Path=/; Secure; HttpOnly; Max-Age=86400; Expires=Tue, 19-Dec-2000 00:00:00 GMT
 ```
