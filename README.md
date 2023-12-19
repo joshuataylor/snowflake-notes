@@ -43,14 +43,13 @@ Provides documentation for how connectors authenticate to Snowflake, and perform
 
 - [Snowsight](snowsight.md)
 
-Covers how to authenticate to Snowsight, and perform queries to retrieve worksheets.
+Covers how to authenticate to Snowsight, and perform queries to retrieve worksheets. Also see an example Python 3.x implementation - [snowsight_basic.py](examples%2Fsnowsight%2Fpython%2Fsnowsight_basic.py).
 
 ## Other Resources
 
-There has been some great posts/resources from the community which cover the internals of Snowflake.
+There has been some great posts/resources from the community which cover the internals and other tips when using Snowflake.
 
 If you have come across resources relating to Snowflake internals, please share!
-
 
 > [!TIP]
 > The [select.dev blog is fantastic](https://select.dev/posts), some of my favourites:
