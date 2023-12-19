@@ -1,10 +1,10 @@
 # Snowsight
 
-This document aims to provide information about how to work with Snowsight, where the primary usecase is working with Worksheets (previously called [Numeracy](https://www.snowflake.com/blog/numeracy-investing-in-our-query-ui/)).
+This document aims to provide information about how to work with Snowsight, where the primary use case is working with Worksheets (previously called [Numeracy](https://www.snowflake.com/blog/numeracy-investing-in-our-query-ui/)).
 
 For everything else that Snowsight offers such as database information, activity, query history, task history etc - you can use SQL to query these directly instead of relying on internal APIs.
 
-## Worksheets Actions
+## Snowsight UI
 
 You can perform the following actions for Worksheets:
 
@@ -14,6 +14,13 @@ You can perform the following actions for Worksheets:
 - Create/Get/Delete [Filters](https://docs.snowflake.com/en/user-guide/ui-snowsight-query#using-filters-in-worksheets)
 - [Get Query Profiler result for Worksheets](https://docs.snowflake.com/en/user-guide/ui-snowsight-query#view-the-query-profile)
 
+## Example Implementation
+There is an example implementation for Python 3.x at [snowsight_basic.py](examples%2Fsnowsight%2Fpython%2Fsnowsight_basic.py).
+
+This aims to provide an example of how to Authenticate and return Worksheets.
+
+> Usage: `python3 snowsight_basic.py <ACCOUNT_NAME> <REGION> <USERNAME> <PASSWORD>`
+
 ## Authentication Workflow Summary
 
 Snowsight requires authentication in two ways:
@@ -21,7 +28,7 @@ Snowsight requires authentication in two ways:
 1. Login via SSO
 2. Login via Username/Password
 
-This is done using cookies, as these endpoints are aimed for Users using browsers instead of consuming a "normal" API.
+This is done using cookies, as these endpoints are aimed for users using browsers instead of consuming a "normal" API.
 
 > The `/v1/` endpoints return token via `/session/v1/login-request` when authenticating, Snowsight requires cookies. See [snowflake_drivers_workflow](snowflake_drivers_workflow.md) for more information about `v1`.
 
@@ -32,37 +39,37 @@ The authentication workflow looks like this:
 
 ## Login Request
 
-URL: `session/v1/login-request?__uiAppName=Login`
-Method:`POST`
+### Endpoint
+`/session/v1/login-request?__uiAppName=Login`
 
-In the below cURL command, replace the following:
+### Method
+ `POST`
 
-`{ACCOUNT_NAME}` - Your account name.
-`{REGION}` - Your Snowflake region.
-`{USERNAME}` - Your username.
-`{PASSWORD}` - Your password.
+### Headers
+- Content-Type: `application/json`
 
-cURL Example:
+### Request Body
 
-```sh
-curl 'https://{ACCOUNT_NAME}.{REGION}.snowflakecomputing.com/session/v1/login-request?__uiAppName=Login' \
--X POST \
--H 'Host: {ACCOUNT_NAME}.{REGION}.snowflakecomputing.com' \
--H 'Content-Type: application/json' \
---data-raw '{"data":{"ACCOUNT_NAME":"{ACCOUNT_NAME}","LOGIN_NAME":"{USERNAME}","PASSWORD":"{PASSWORD}","CLIENT_APP_ID":"Snowflake UI","CLIENT_APP_VERSION":1234}}'
+```json
+{
+    "data":
+    {
+        "ACCOUNT_NAME": "{ACCOUNT_NAME}",
+        "LOGIN_NAME": "{USERNAME}",
+        "PASSWORD": "{PASSWORD}",
+        "CLIENT_APP_ID": "Snowflake UI",
+        "CLIENT_APP_VERSION": 1234
+    }
+}
 ```
 
-### Request Notes
+#### Request Notes
 
 1. `ACCOUNT_NAME` is your actual account name, without the region, as you're authenticating against the endpoint already.
 2. `LOGIN_NAME` is your username.
 3. `PASSWORD` is your password.
-
-#### CLIENT_APP_ID
-
-When set to `Snowflake UI`, a `redirectURI` is returned in the JSON. You'll need this when authenticating to Snowsight.
-
-Otherwise returns a `masterToken`/`token`.
+4. `{REGION}` - Your Snowflake region.
+5. `CLIENT_APP_ID` - When set to `Snowflake UI`, a `redirectURI` is returned in the JSON. You'll need this when authenticating to Snowsight. Otherwise, if you pass any other value, the endpoint returns a `masterToken`/`token`.
 
 ### Response
 
@@ -139,9 +146,11 @@ Otherwise returns a `masterToken`/`token`.
 > -If it is `https://apps-api.c1.{REGION}.aws.app.snowflake.com/complete-oauth/snowflake?code={CODE}`, the hostname is `apps-api.c1.{REGION}.aws.app.snowflake.com`.
 
 ## Complete OAuth Request
+### Endpoint
+`/complete-oauth/snowflake?code={CODE}`
 
-URL: `complete-oauth/snowflake?code={CODE}`
-Method: `GET`
+### Method
+ `GET`
 
 `{CODE}` - Using the returned code from above, but just use `redirectURL` returned from the `login-request` - it's easier as this might.
 
@@ -173,17 +182,18 @@ Snowflake requires an `OrganizationID` and `csrfToken` for Snowsight endpoints, 
 
 ### Bootstrap Request
 
-- Endpoint: Hostname from `redirectURL`, see above.
-- URL: `/bootstrap`
-- Method: `GET`
-- Returns: JSON
+`/boostrap`
 
-Headers:
+#### Method
+
+ `GET`
+
+#### Headers
 
 - `X-Snowflake-Context: {USERNAME}::https://{ACCOUNTNAME}.{REGION}.snowflakecomputing.com`
 
 > [!TIP]
-> This header is required on all future requests.
+> This header + cookies are required on all future requests.
 
 Example cURL Request:
 
@@ -195,7 +205,7 @@ curl 'https://apps-api.c1.{REGION}.aws.app.snowflake.com/bootstrap' \
 
 ### Bootstrap Response
 
-The response is quite large, here is a cut down version of what you're looking for:
+The response is quite large, here is a sample of the organisation information:
 
 ```json
 {
@@ -224,11 +234,11 @@ The response is quite large, here is a cut down version of what you're looking f
 `OrganizationID` is from either:
 
 1. `Org` -> `id`.
-2. If that is null/empty, falling back to `User` -> `defaultOrgId`/`orgId`.
+2. That value can be null/empty, fall back to `User` -> `defaultOrgId`/`orgId`.
 
 ### Snowsight Request Requirements
 
-Now you have:
+Now you have the following:
 
 1. Cookies
 2. `csrfToken`
@@ -241,35 +251,43 @@ Every Snowsight request requires the following headers:
 1. `X-Snowflake-Context: {USERNAME}::https://{ACCOUNTNAME}.{REGION}.snowflakecomputing.com`
 2. `X-CSRF-Token: {CSRFTOKEN}`
 
-And you also need to pass through your cookies.
+As well as the cookies.
 
 ## Worksheets
 
-### Worksheets Request
+### Get all Worksheets
+#### Summary
+Returns all worksheets/folders/folders. Snowflake seems to call these `entities`, as it can contain multiple types.
 
-- Endpoint: Hostname from `redirectURL`, see above.
-- URL: `/v0/organizations/{ORGANIZATIONID}/entities/list`
-- Method: `POST`
-- Content-Type: `application/x-www-form-urlencoded``
+##### Endpoint
+`/v0/organizations/{ORGANIZATIONID}/entities/list`
+
+##### Method
+ `POST`
+
+##### Headers
+- Content-Type: `application/x-www-form-urlencoded`
+- Accept: `application/json`
+
 - Returns: JSON
 
-#### Worksheets Request Notes
+#### Get all Worksheets Request Notes
 
-1. The limit for worksheets seems to be 500.
+1. The limit for this endpoint seems to be `500`.
 2. `types` are `query`, `dashboard`, `folder`.
 3. `col` seems to be `modified` (when the item was last modified) and `viewed` (when the item was last viewed)
 
-#### Worksheets Request Body
+#### Get all Worksheets Request Body
 
-This requires a form body, see the [Mozilla Docs about HTTP Post](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST) for more information.
+This request requires a form body, see the [Mozilla Docs about HTTP Post](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST) for more information.
 
-The request looks like this:
+The unencoded request looks like this:
 
 ```json
 options={"sort":{"col":"modified","dir":"desc"},"limit":500,"owner":null,"types":["query"],"showNeverViewed":"if-invited"}&location=worksheets
 ```
 
-The JSON for options must be URL encoded:
+The `options` part in the request **must be URL encoded**:
 
 ```json
 options=%7B%22sort%22%3A%7B%22col%22%3A%22modified%22%2C%22dir%22%3A%22desc%22%7D%2C%22limit%22%3A500%2C%22owner%22%3Anull%2C%22types%22%3A%5B%22query%22%5D%2C%22showNeverViewed%22%3A%22if-invited%22%7D&location=worksheets
@@ -592,8 +610,9 @@ This seems to have Worksheets in the following objects:
 
 2. `models`
 
-`models` is an object containing `folders` , `queries`, `dbSchemas`, `worksheetImports` (from classic console?), `drafts`.
+`models` is an object containing `folders` , `queries`, `dbSchemas`, `worksheetImports` (from classic console?) and `drafts`.
 
-For a full example, see the above `Example entities/list Response`.
+> For an example JSON response, see the above `Example entities/list Response`.
 
-To get the full information such as SQL, you'll need to iterate over `models.queries`, noting that `queries` are objects and not a list.
+To get the full Worksheet information such as SQL, timings, etc, you'll need to iterate over `models.queries`,
+noting that `queries` are objects and not a list.
