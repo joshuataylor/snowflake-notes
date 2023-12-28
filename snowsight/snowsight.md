@@ -15,6 +15,7 @@ You can perform the following actions for Worksheets:
 - [Get Query Profiler result for Worksheets](https://docs.snowflake.com/en/user-guide/ui-snowsight-query#view-the-query-profile)
 
 ## Example Implementation
+
 There is an example implementation for Python 3.x at [snowsight_basic.py](examples%2Fsnowsight%2Fpython%2Fsnowsight_basic.py).
 
 This aims to provide an example of how to Authenticate and return Worksheets.
@@ -25,12 +26,15 @@ This aims to provide an example of how to Authenticate and return Worksheets.
 
 Snowsight requires authentication in two ways:
 
-1. Login via SSO
-2. Login via Username/Password
+1. Login via Username/Password (steps below)
+2. [Login via Username/Password, with Duo for MFA](./snowsight_duo_mfa.md)
+3. [Login via SSO SAML 2.0, using an IdP](./snowsight_sso_saml.md)
+
+> It would be __FANTASTIC__ to use [Private Key Authentication](./snowsight_private_key_auth.md), if anyone knows how.. *please reach out.*
 
 This is done using cookies, as these endpoints are aimed for users using browsers instead of consuming a "normal" API.
 
-> The `/v1/` endpoints return token via `/session/v1/login-request` when authenticating, Snowsight requires cookies. See [snowflake_drivers_workflow](snowflake_drivers_workflow.md) for more information about `v1`.
+> The `/v1/` endpoints return token via `/session/v1/login-request` when authenticating, Snowsight requires cookies. See [snowflake_drivers_workflow](../snowflake_drivers_workflow.md) for more information about `v1`.
 
 The authentication workflow looks like this:
 

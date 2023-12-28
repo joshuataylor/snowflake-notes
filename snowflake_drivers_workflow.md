@@ -1,19 +1,23 @@
 # Snowflake Connectors Workflow
 
-This document aims to provide information about how Snowflake drivers work, in terms of how they authenticate, perform queries and other features you can use.
+This document aims to explain in detail how Snowflake drivers work, how they authenticate, perform queries, and other features you can use.
 
-These notes should be useful when developing a Snowflake driver or needing to query certain endpoints.
+These notes should be helpful when developing a Snowflake driver or needing to query specific endpoints.
 
 ## Usecase
+
 These are the endpoints that the [official drivers](https://docs.snowflake.com/en/developer-guide/drivers) use with Snowflake.
 
 ## Capabilities
+
 Login, perform queries, query monitoring, abort queries, fetch query result sets, basically anything a driver can do.
 
 ## Endpoints
 
 ### Login
+
 #### Summary
+
 The login endpoint (`session/v1/login-request`) expects a POST request containing a JSON body with your Snowflake credentials.
 
 On successful login, the endpoint returns a `token`, which you use when accessing other endpoints.
@@ -255,12 +259,15 @@ Valid response:
 #### Request
 
 ##### Endpoint
+
 `/session/v1/login-request`
 
 ##### Method
+
  `POST`
 
 ##### Headers
+
 - Content-Type: `application/json`
 - Accept: `application/json`
 
@@ -293,17 +300,21 @@ Valid response:
   }
 }
 ```
+
 ```
 barrr
 ```
 
 ###### ACCOUNT_NAME
+
 Your account name + region, eg `foo12345.us-east-1`.
 
 ###### PASSWORD
+
 Your password :-).
 
 ###### LOGIN_NAME
+
 Your username.
 
 ###### CLIENT_APP_ID / CLIENT_APP_VERSION
@@ -313,7 +324,7 @@ This determines the type of data you are returned when querying for rows, as Sno
 > [!NOTE]
 > For additional information about Arrow Streams, see the [Apache Arrow documentation about streaming files from Arrow](https://arrow.apache.org/docs/python/ipc.html).
 
-This is because certain languages don't have support for Arrow, and need JSON Resultsets (Node.js, etc).
+This is because certain languages don't have support for Arrow yet, and fallback to using JSON Resultsets (Node.js, etc).
 
 This information is shown in the Classic Console when viewing a query, the version might show a warning that it is no longer supported by Snowflake if it's set too low.
 
@@ -344,7 +355,7 @@ I recommend using these:
 Validates that the parameters are correct.
 
 2. `QUOTED_IDENTIFIERS_IGNORE_CASE: true`
-Ignores case for quoted identifers, [see docs](https://docs.snowflake.com/en/sql-reference/identifiers-syntax#migrating-from-databases-that-treat-double-quoted-identifiers-as-case-insensitive). This helps work around issues if you're implementing for a language with database drivers that don't expect this behaviour.
+Ignores case for quoted identifiers, [see](https://docs.snowflake.com/en/sql-reference/identifiers-syntax#migrating-from-databases-that-treat-double-quoted-identifiers-as-case-insensitive) docs](<https://docs.snowflake.com/en/sql-reference/identifiers-syntax#migrating-from-databases-that-treat-double-quoted-identifiers-as-case-insensitive>). This helps work around issues if you're implementing for a language with database drivers that don't expect this behavior.
 
 ###### CLIENT_ENVIRONMENT
 
@@ -365,7 +376,7 @@ Sets various parameters such as warehouse, role, etc.
 - `tracing`: Used to tell to the client you want additional tracing, I don't believe Snowflake themselves send more information/context. Values: `DEBUG`, etc.
 
 - `OS`: Meta information, I usually use `Linux`.
-- `APPLICATION` - Shows your application name in the query history, useful for debugging.
+- `APPLICATION` - Displays your application name in the query history, useful for debugging.
 
 ## Query Request
 
@@ -386,9 +397,11 @@ curl 'https://xx.us-east-1.snowflakecomputing.com/queries/v1/query-request' \
 "accept", "application/snowflake
 
 ## Get Query Results
+
 `/queries/{QUERY_ID}/result` GET
 
 ## Abort Query
+
 `/queries/v1/abort-request` POST
 
 `/queries/13f12818-de4c-41d2-bf19-f115ee8a5cc1/abort-request` POST
