@@ -127,7 +127,9 @@ def login_request(base_url: str, login_payload: dict) -> dict:
         logging.info(e.reason)
 
 
-def login_username_password_payload(account_name: str, login_name: str, password: str) -> dict:
+def login_username_password_payload(
+    account_name: str, login_name: str, password: str
+) -> dict:
     """
     The simplest way a user can log in is via username and password, as Snowflake directly returns the redirectUri.
 
@@ -227,7 +229,9 @@ def login_duo_passcode_payload(
             return {
                 "data": {
                     "CLIENT_APP_ID": "Snowflake UI",
-                    "CLIENT_APP_VERSION": datetime.datetime.now().strftime("%Y%m%d%H%M%S"),
+                    "CLIENT_APP_VERSION": datetime.datetime.now().strftime(
+                        "%Y%m%d%H%M%S"
+                    ),
                 },
                 "inFlightCtx": inflight_ctx,
             }
@@ -452,7 +456,9 @@ def snowsight_bootstrap(
             #
             # 1. response_data["Org"]["id"].
             # 2. That value can be null/empty, fall back to response_data["User"]["defaultOrgId"]
-            org_id = response_data.get("Org", {}).get("id", None) or response_data["User"].get("defaultOrgId", None)
+            org_id = response_data.get("Org", {}).get("id", None) or response_data[
+                "User"
+            ].get("defaultOrgId", None)
 
             return {"csrf_token": csrf_token, "org_id": org_id}
 
@@ -553,20 +559,22 @@ def extract_worksheets(
     logging.info("Logging in using %s", login_method)
 
     # Step 1 - Build the login request payload, this varies depending on username/password, SSO, Duo
-    data = {}
+    login_payload = {}
     if login_method == "password":
-        data = login_username_password_payload(account_name, login_name, password)
+        login_payload = login_username_password_payload(
+            account_name, login_name, password
+        )
     elif login_method == "sso":
-        data = login_sso_payload(instance_url, account_name, login_name)
+        login_payload = login_sso_payload(instance_url, account_name, login_name)
     elif login_method == "duo_passcode":
-        data = login_duo_passcode_payload(
+        login_payload = login_duo_passcode_payload(
             instance_url, account_name, login_name, password, duo_passcode
         )
 
     # Step 2 - Perform the login request, see https://github.com/joshuataylor/snowflake-notes/blob/main/snowsight.md#login-request
-    logging.debug("login payload - %s", data)
+    logging.debug("login payload - %s", login_payload)
     logging.info("Logging into Snowflake..")
-    login_data = login_request(instance_url, data)
+    login_data = login_request(instance_url, login_payload)
     logging.info("Logged into Snowflake!")
     redirect_uri = login_data["redirect_uri"]
     name = login_data["name"]
