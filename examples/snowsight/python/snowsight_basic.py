@@ -211,8 +211,9 @@ def start_oauth(app_server_url: str, instance_url: str, csrf_token: str) -> dict
     url = f"{app_server_url}/start-oauth/snowflake?accountUrl={instance_url_encoded}&&state={state_encoded}"
 
     headers = {
-        "Content-Type": "application/json",
         "User-Agent": fake_user_agent(),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Referer": "https://app.snowflake.com/"
     }
 
     logging.debug("[GET REQUEST] URL: %s - Headers: %s", url, headers)
